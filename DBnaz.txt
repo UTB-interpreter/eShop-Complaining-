@@ -1,0 +1,134 @@
+--CREATE TABLE Product (
+--ProductID INT PRIMARY KEY NOT NULL,
+--ProductName VARCHAR(50) NOT NULL,
+--Price INT NOT NULL
+--);
+
+--CREATE TABLE Customer (
+--CustomerID INT PRIMARY KEY NOT NULL IDENTITY,
+--FirstName VARCHAR(50) NOT NULL,
+--LastName VARCHAR(50) NULL,
+--ProductID INT,
+--FOREIGN KEY (ProductID) REFERENCES Product(ProductID)  XX
+--);
+
+--CREATE TABLE Ordert (
+--OrderID INT PRIMARY KEY NOT NULL,
+--Date DATE NOT NULL,							-- date of sold
+--PostCode INT NOT NULL,
+--ProductID INT,
+--FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+--);
+
+--CREATE TABLE Complaint (
+--ComplaintID INT NOT NULL IDENTITY,
+--Date DATE NOT NULL,					-- date of complaint
+--CustomerID INT NOT NULL,
+--OrderID INT NOT NULL,
+--FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
+--FOREIGN KEY (OrderID) REFERENCES Ordert(OrderID)
+--);
+
+--CREATE TABLE Admint (
+--AdminID INT PRIMARY KEY NOT NULL,
+--Username VARCHAR(50) NOT NULL,
+--Password VARCHAR(50) NOT NULL
+--);
+
+--ALTER TABLE Complaint
+--ADD AdminID INT;
+
+--ALTER TABLE Complaint
+--ADD CONSTRAINT FK_admin
+--FOREIGN KEY (AdminID) REFERENCES Admint(AdminID);
+
+--ALTER TABLE Complaint
+--ADD PRIMARY KEY (ComplaintID);
+
+--ALTER TABLE Complaint ADD Message TEXT NOT NULL;
+
+-- ALTER TABLE Customer Add OrderID INT FOREIGN KEY REFERENCES Ordert(OrderID);
+
+-- _______________________________________________________________________________ --
+-- CUSTOMER--
+--CREATE PROCEDURE Report
+--	@FirstName VARCHAR(50), @LastName VARCHAR(50), @OrderID INT, @Message TEXT
+--AS
+--	BEGIN
+--		IF (@OrderID IN (SELECT OrderID FROM Ordert))
+--			BEGIN
+--				INSERT INTO Customer(FirstName, LastName, OrderID) VALUES (@FirstName, @LastName, @OrderID);
+--				INSERT INTO Complaint(CustomerID, Date, OrderID, Message) VALUES (
+--				(SELECT CustomerID FROM Customer WHERE FirstName = @FirstName AND LastName = @LastName AND OrderID = @OrderID ORDER BY CustomerID DESC OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY),
+--				(SELECT GETDATE()), (SELECT @OrderID), @Message);
+--			END
+--		ELSE 
+--			BEGIN
+--				SELECT 'You have Entered an Wrong Product ID!'
+--			END
+--	END
+--GO
+
+
+--EXEC Report @FirstName = 'NAZ', @LastName = 'ZANA', @OrderID = 100, @Message = '7azt leya bxoy?!';
+
+--_________________________________________________________________________________________________--
+
+-- ADMIN TO SEE THE COMPAINTS
+
+--CREATE PROCEDURE IAmAdmin
+--	@Select varchar(50)
+--AS
+--	BEGIN
+--		IF (@Select = 0)
+--			BEGIN
+--				SELECT cust.OrderID, P.ProductName, P.Price, LastName, FirstName, Message, Com.Date 
+--				FROM Complaint AS Com
+--				LEFT JOIN Customer AS cust
+--					ON Com.CustomerID = cust.CustomerID
+--				RIGHT JOIN Ordert 
+--					ON Ordert.OrderID = Com.OrderID
+--				LEFT JOIN Product AS P
+--					ON P.ProductID = Ordert.ProductID
+--				ORDER BY Com.Date
+--			END
+--		ELSE
+--			BEGIN 
+--				SELECT cust.OrderID, P.ProductName, P.Price, LastName, FirstName, Message, Com.Date 
+--				FROM Complaint AS Com
+--				LEFT JOIN Customer AS cust
+--					ON Com.CustomerID = cust.CustomerID
+--				RIGHT JOIN Ordert 
+--					ON Ordert.OrderID = Com.OrderID
+--				LEFT JOIN Product AS P
+--					ON P.ProductID = Ordert.ProductID
+--				WHERE ComplaintID = @Select
+--			END
+--	END
+--GO
+
+--EXEC IAmAdmin @Select = 0
+--_____________________________________________________________________________________________--
+
+--CREATE PROCEDURE IAmAdminToRmove
+--	@Select INT
+--AS
+--	BEGIN
+--		IF (@Select = 0)
+--			BEGIN
+--				DELETE FROM Complaint
+--			END
+--		ELSE
+--			BEGIN
+--				DELETE FROM Complaint WHERE ComplaintID = @Select
+--			END
+--	END
+--GO
+
+--EXEC IAmAdminToRmove @Select = 1
+
+
+--_____________________________________________________________________________________________--
+
+--insert into Product (ProductID, ProductName, Price) values (10, 'Karuzo', 15);
+--INSERT INTO Ordert (OrderID, Date, PostCode, ProductID) VALUES (100, (SELECT GETDATE()), 115, 10);
